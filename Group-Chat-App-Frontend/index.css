@@ -1,0 +1,36 @@
+
+.login-form__button{
+    background-color:#1a5f28;
+    border: none;
+    border-radius: 10px;
+}
+
+.login-form__button:hover{
+    background-color: #083a12;
+}
+
+.login-elements{
+    margin-top: 20px;
+    background: #9edaab;
+    border-radius: 20px;
+    padding: 20px;
+    height: 330px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.nav-bar{
+    background-color:#1a5f28;
+}
+
+.brand{
+    color: aliceblue;
+}
+
+.brand:hover{
+    cursor: auto;
+    color: aliceblue;
+}
+
+
