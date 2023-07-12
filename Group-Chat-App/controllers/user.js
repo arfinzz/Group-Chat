@@ -19,7 +19,7 @@ exports.loginUser = async (req, res, next) => {
   const password = req.body.password;
   //console.group(email,password);
   if (isNotValid(email) || isNotValid(password)) {
-    return res.status(400).json({ message: "Invaid details" });
+    return res.status(400).json({ message: "Invaid details !" });
   }
 
   try {
@@ -43,12 +43,12 @@ exports.loginUser = async (req, res, next) => {
         //console.log(token);
         return res
           .status(200)
-          .json({ message: "User Login Successfull", token: token });
+          .json({ message: "User Login Successfull !", token: token });
       } else {
-        return res.status(401).json({ message: "User Not Authorized" });
+        return res.status(401).json({ message: "User Not Authorized !" });
       }
     } else {
-      return res.status(404).json({ message: "User Not Found" });
+      return res.status(404).json({ message: "User Not Found !" });
     }
   } catch (err) {
     console.log(err);
@@ -67,7 +67,7 @@ exports.addUser = async (req, res, next) => {
     isNotValid(password) ||
     isNotValid(phoneno)
   ) {
-    return res.status(400).json({ message: "Invaid details" });
+    return res.status(400).json({ message: "Invaid details !" });
   }
   const t = await sequelize.transaction();
   try {
@@ -86,12 +86,12 @@ exports.addUser = async (req, res, next) => {
     });
 
     if (isExistingUser.length > 0) {
-      return res.status(400).json({ message: "Email/PhoneNo Already Exist" });
+      return res.status(400).json({ message: "Email/PhoneNo Already Exist !" });
     } else {
       const newUser = await User.create(userData, { transaction: t });
       //console.log(newUser);
       await t.commit();
-      return res.status(201).json({ message: "Account Created" });
+      return res.status(201).json({ message: "Account Created !" });
     }
   } catch (err) {
     console.log(err);

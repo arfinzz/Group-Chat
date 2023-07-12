@@ -1,8 +1,9 @@
 const express=require('express')
 const Sequelize=require('sequelize');
 const bodyParser=require('body-parser');
+const cors = require('cors');
 
-const userRoutes=require('./routes/user')
+const userRoutes=require('./routes/user');
 
 const sequelize=require('./utils/database');
 const User=require('./models/user');
@@ -10,6 +11,7 @@ const User=require('./models/user');
 
 
 const app=express();
+app.use(cors())
 app.use(bodyParser.json());
 app.use(userRoutes);
 

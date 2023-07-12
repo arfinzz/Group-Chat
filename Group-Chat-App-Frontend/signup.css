@@ -9,12 +9,16 @@
     background-color: #083a12;
 }
 
+.signup-form__button:focus{
+    background-color: #1a5f28;
+}
+
 .signup-elements{
     margin-top: 20px;
     background: #9edaab;
     border-radius: 20px;
     padding: 20px;
-    height: 530px;
+    height: 550px;
     max-width: 550px;
     margin-left: auto;
     margin-right: auto;
@@ -31,6 +35,15 @@
 .brand:hover{
     cursor: auto;
     color: aliceblue;
+}
+
+.feedback{
+    color: red;
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-left: 50px;
+    margin-top: 50px;
+    display: none;
 }
 
 
