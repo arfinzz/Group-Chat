@@ -1,24 +1,21 @@
-require("dotenv").config();
-const { Op } = require("sequelize");
-const bcrypt = require("bcrypt");
-const jwt = require('jsonwebtoken');
 
+const { Op } = require("sequelize");
+
+
+const Security=require('../utils/security');
 const User = require("../models/user");
 const sequelize = require("../utils/database");
 
-const saltRounds = Number(process.env.SALT_ROUNDS);
-const jwtPrivateKey=process.env.JWT_PRIVATE_KEY;
 
-function isNotValid(str) {
-  if (str && str.length > 0) return false;
-  return true;
-}
+
+
+
 
 exports.loginUser = async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   //console.group(email,password);
-  if (isNotValid(email) || isNotValid(password)) {
+  if (Security.isNotValid(email) || Security.isNotValid(password)) {
     return res.status(400).json({ message: "Invaid details !" });
   }
 
@@ -31,15 +28,10 @@ exports.loginUser = async (req, res, next) => {
     //console.log(userWithEmail)
 
     if (userWithEmail.length > 0) {
-      const passwordMatched = await bcrypt.compare(
-        password,
-        userWithEmail[0].password
-      );
+      const passwordMatched = await Security.hashCompare(password,userWithEmail[0].password)
       if (passwordMatched) {
-        const token = jwt.sign(
-          { id: userWithEmail[0].id, email: userWithEmail[0].email },
-          jwtPrivateKey
-        );
+
+        const token = Security.createToken(userWithEmail[0].id.toString(),email);
         //console.log(token);
         return res
           .status(200)
@@ -56,22 +48,23 @@ exports.loginUser = async (req, res, next) => {
   }
 };
 
+
 exports.addUser = async (req, res, next) => {
   const email = req.body.email;
   const name = req.body.name;
   const phoneno = req.body.phoneno;
   const password = req.body.password;
   if (
-    isNotValid(email) ||
-    isNotValid(name) ||
-    isNotValid(password) ||
-    isNotValid(phoneno)
+    Security.isNotValid(email) ||
+    Security.isNotValid(name) ||
+    Security.isNotValid(password) ||
+    Security.isNotValid(phoneno)
   ) {
     return res.status(400).json({ message: "Invaid details !" });
   }
   const t = await sequelize.transaction();
   try {
-    const encryptedPassword = await bcrypt.hash(password, saltRounds);
+    const encryptedPassword = await Security.hash(password);
     const userData = {
       email: email,
       name: name,

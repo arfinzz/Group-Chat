@@ -11,10 +11,14 @@ const loginHandler = async (event) => {
   try {
     const resp = await axios.post("http://localhost:3300/login", userData);
     console.log(resp.data);
+    document.cookie=`token=${resp.data.token}`
     const feedback = document.querySelector(".feedback");
     feedback.innerHTML = resp.data.message;
     feedback.style.display = "block";
     feedback.style.color = "green";
+    //console.log(document.cookie)
+    window.location='/Group-Chat-App-Frontend/chat.html';
+
   } catch (error) {
     if (error.response) {
       // The request was made and the server responded with a status code
