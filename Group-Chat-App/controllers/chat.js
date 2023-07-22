@@ -14,39 +14,28 @@ exports.sendChat = async (req, res, next) => {
   }
 };
 
-exports.getChatCount = async (req, res, next) => {
-  try {
-    const chatcount = await Chat.count();
-    return res.status(200).json({ chatcount:chatcount });
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json(err);
-  }
-};
-
 exports.getChat = async (req, res, next) => {
   try {
-    const pageNo = req.headers.pageno;
-    const chatCount = req.headers.chatcount;
+    const firstId = req.headers.firstid;
+    
     //console.log(req.headers)
     const limit = 10;
-    const totalPages = Math.ceil(chatCount/limit);
-    if (pageNo > totalPages) {
-      return res.status(204).json({ message: "No Chats !" });
-    }
-    //console.log(total)
-    const offset = (totalPages - pageNo) * limit;
+
     const [fetchedChats, metadata] =
-      await sequelize.query(`SELECT name, chatData, chats.createdAt as time
+      await sequelize.query(`SELECT chats.id as id, name, chatData, chats.createdAt as time
       FROM users
       INNER JOIN chats
       ON chats.userId = users.id
-      LIMIT ${limit} OFFSET ${offset};`);
+      WHERE chats.id<${firstId}
+      ORDER BY chats.id DESC
+      LIMIT ${limit} OFFSET 0`);
     //console.log(exp);
 
     fetchedChats.forEach((chat) => {
       chat.time = moment(chat.time).format("MMMM Do YYYY, h:mm a");
     });
+
+    fetchedChats.reverse();
 
     return res.status(200).json({ chats: fetchedChats });
   } catch (err) {
@@ -57,24 +46,19 @@ exports.getChat = async (req, res, next) => {
 
 exports.getNewChat = async (req, res, next) => {
   try {
-    const offset = Number(req.headers.loadedchatcount);
-    const totalChats = await Chat.count();
-    if (offset >= totalChats) {
-      return res.status(204).json({ message:"No New Chats !"});
-    }
-    const [fetchedChats, metadata] =
-      await sequelize.query(`SELECT name, chatData, chats.createdAt as time
+    const lastId = Number(req.headers.lastid);
+    const [fetchedChats, metadata]=await sequelize.query(`SELECT chats.id as id, name, chatData, chats.createdAt as time
       FROM users
       INNER JOIN chats
       ON chats.userId = users.id
-      LIMIT 100 OFFSET ${offset};`);
-    //console.log(exp);
+      WHERE chats.id>${lastId}
+      LIMIT 1000 OFFSET 0`);
 
     fetchedChats.forEach((chat) => {
       chat.time = moment(chat.time).format("MMMM Do YYYY, h:mm a");
     });
 
-    return res.status(200).json({ chats: fetchedChats, loadedchatcount:totalChats});
+    return res.status(200).json({ chats: fetchedChats });
   } catch (err) {
     console.log(err);
     return res.status(500).json(err);

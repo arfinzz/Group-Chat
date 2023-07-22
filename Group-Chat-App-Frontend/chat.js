@@ -1,9 +1,11 @@
 const scrollBar = document.querySelector(".chat-container");
 const token = getCookie("token");
 const loadMoreDiv = document.querySelector(".more");
-let pageno = 1;
-let chatcount = 0;
-let loadedchat=0;
+const firstElement = document.querySelector(".first-chat");
+let firstId = 99999;
+let lastId = -1;
+
+let chats = JSON.parse(localStorage.getItem("chats"));
 
 function getCookie(cname) {
   let name = cname + "=";
@@ -21,23 +23,66 @@ function getCookie(cname) {
   return "";
 }
 
-const getChatCount = async () => {
+const displayChats = async (chatstoinsert) => {
   try {
-    const response = await axios.get("http://localhost:3300/chatcount", {
-      headers: { authorization: token},
+    let str = "";
+    chatstoinsert.forEach((chat) => {
+      str += `<li class="chat-container__chat"> <div class="sender-name">${chat.name} :</div><div class="message-data">${chat.chatData}</div> <div class="time-div">${chat.time}</div> </li>`;
     });
-    chatcount = response.data.chatcount;
-    loadedchat=chatcount;
-    await displayChats();
-    return chatcount;
-  } catch (error) {
-    console.log(error);
+
+    firstElement.insertAdjacentHTML("afterend", str);
+    scrollBar.scrollBy(0, 100);
+  } catch (err) {
+    console.log(err);
   }
 };
 
-getChatCount();
+const getChats = async () => {
+  try {
+    const response = await axios.get("http://localhost:3300/chat", {
+      headers: { authorization: token, firstid: firstId },
+    });
+    const fetchedChats = response.data.chats;
+    if (fetchedChats.length == 0) {
+      loadMoreDiv.remove();
+      return;
+    }
+    if (chats.length == 0) {
+      lastId = fetchedChats[fetchedChats.length - 1].id;
+    }
 
+    if (chats.length < 10) {
+      let temp = fetchedChats.concat(chats);
+      while (temp.length > 10) {
+        temp.shift();
+      }
+      chats = temp;
+      localStorage.setItem("chats", JSON.stringify(chats));
+    }
 
+    firstId = fetchedChats[0].id;
+    displayChats(fetchedChats);
+    return;
+  } catch (error) {
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      if (error.response.status == 401) {
+        window.location = "/Group-Chat-App-Frontend/index.html";
+      } else {
+        console.log(error.response.data.message);
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+      // http.ClientRequest in node.js
+      console.log(error.request);
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.log("Error", error.message);
+    }
+  }
+};
 
 const sendHandler = async (event) => {
   event.preventDefault();
@@ -71,95 +116,9 @@ const sendHandler = async (event) => {
   }
 };
 
-
-const getChats = async (pageno,chatcount) => {
+const displayNewChats = async (chatstoinsert) => {
   try {
-    const response = await axios.get("http://localhost:3300/chat", {
-      headers: { authorization: token, pageno: pageno, chatcount:chatcount },
-    });
-    //console.log(response);
-    return response.data.chats;
-  } catch (error) {
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      if (error.response.status == 401) {
-        window.location = "/Group-Chat-App-Frontend/index.html";
-      } else {
-        console.log(error.response.data.message);
-      }
-    } else if (error.request) {
-      // The request was made but no response was received
-      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-      // http.ClientRequest in node.js
-      console.log(error.request);
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.log("Error", error.message);
-    }
-  }
-};
-
-const getNewChats = async (loadedchatcount) => {
-  try {
-    const response = await axios.get("http://localhost:3300/newchat", {
-      headers: { authorization: token, loadedchatcount:loadedchatcount },
-    });
-    
-    if(response.status!=204)
-    {
-      loadedchat=response.data.loadedchatcount;
-    }
-    return response.data.chats;
-  } catch (error) {
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      if (error.response.status == 401) {
-        window.location = "/Group-Chat-App-Frontend/index.html";
-      } else {
-        console.log(error.response.data.message);
-      }
-    } else if (error.request) {
-      // The request was made but no response was received
-      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-      // http.ClientRequest in node.js
-      console.log(error.request);
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.log("Error", error.message);
-    }
-  }
-};
-
-const displayChats = async () => {
-  try {
-    const fetchedChats = await getChats(pageno,chatcount);
-    if (!fetchedChats) {
-      loadMoreDiv.remove();
-      return;
-    }
-    let str = "";
-    fetchedChats.forEach((chat) => {
-      str += `<li class="chat-container__chat"> <div class="sender-name">${chat.name} :</div><div class="message-data">${chat.chatData}</div> <div class="time-div">${chat.time}</div> </li>`;
-    });
-
-    const firstElement = document.querySelector(".first-chat");
-    firstElement.insertAdjacentHTML("afterend", str);
-    scrollBar.scrollBy(0, 100);
-    pageno++;
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-const displayNewChats = async () => {
-  try {
-    const fetchedChats = await getNewChats(loadedchat);
-    if (!fetchedChats) {
-      return;
-    }
-    fetchedChats.forEach((chat) => {
+    chatstoinsert.forEach((chat) => {
       const node = document.createElement("li");
       node.setAttribute("class", "chat-container__chat");
       node.innerHTML = `<div class="sender-name">${chat.name} :</div><div class="message-data">${chat.chatData}</div> <div class="time-div">${chat.time}</div>`;
@@ -170,19 +129,63 @@ const displayNewChats = async () => {
   }
 };
 
+const getNewChats = async () => {
+  try {
+    const response = await axios.get("http://localhost:3300/newchat", {
+      headers: { authorization: token, lastid: lastId },
+    });
 
+    const fetchedChats = response.data.chats;
 
+    if (fetchedChats.length == 0) {
+      return;
+    }
+
+    lastId = fetchedChats[fetchedChats.length - 1].id;
+    let temp = chats.concat(fetchedChats);
+    while (temp.length > 10) {
+      temp.shift();
+    }
+    chats = temp;
+    localStorage.setItem("chats", JSON.stringify(chats));
+    await displayNewChats(fetchedChats);
+    //return response.data.chats;
+  } catch (error) {
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      if (error.response.status == 401) {
+        window.location = "/Group-Chat-App-Frontend/index.html";
+      } else {
+        console.log(error.response.data.message);
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+      // http.ClientRequest in node.js
+      console.log(error.request);
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.log("Error", error.message);
+    }
+  }
+};
 
 const intersectionObserver = new IntersectionObserver((entries) => {
   if (entries[0].intersectionRatio <= 0) return;
   // load more content;
-  setTimeout(displayChats, 1000);
+  setTimeout(getChats, 1000);
 });
-// start observing
+
+if (chats) {
+  firstId = chats[0].id;
+  lastId = chats[chats.length - 1].id;
+  displayChats(chats);
+} else {
+  chats = [];
+  getChats();
+}
+
 intersectionObserver.observe(loadMoreDiv);
+setInterval(getNewChats, 8000);
 
-scrollBar.scrollTo(0, scrollBar.scrollHeight);
-setInterval(displayNewChats, 8000);
-
-
-//window.location='/Group-Chat-App-Frontend/index.html'

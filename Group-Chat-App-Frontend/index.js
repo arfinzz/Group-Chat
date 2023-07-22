@@ -11,7 +11,9 @@ const loginHandler = async (event) => {
   try {
     const resp = await axios.post("http://localhost:3300/login", userData);
     console.log(resp.data);
-    document.cookie=`token=${resp.data.token}`
+    document.cookie=`token=${resp.data.token}`;
+
+    localStorage.removeItem("chats");
     const feedback = document.querySelector(".feedback");
     feedback.innerHTML = resp.data.message;
     feedback.style.display = "block";
