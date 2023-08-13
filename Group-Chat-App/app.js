@@ -10,6 +10,7 @@ const chatRoutes=require('./routes/chat');
 const sequelize=require('./utils/database');
 const User=require('./models/user');
 const Chat=require('./models/chat');
+const Group=require('./models/group');
 
 
 
@@ -22,7 +23,13 @@ app.use(chatRoutes)
 
 
 User.hasMany(Chat);
-Chat.belongsTo(User,{constraints:true,onDelete:'CASCADE'});
+Chat.belongsTo(User);
+
+User.belongsToMany(Group, { through: 'GroupUsers' });
+Group.belongsToMany(User, { through: 'GroupUsers' });
+
+Group.hasMany(Chat);
+Chat.belongsTo(Group);
 
 //{force:true}
 sequelize.sync()

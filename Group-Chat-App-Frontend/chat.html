@@ -13,7 +13,8 @@
     <link rel="stylesheet" href="chat.css" />
   </head>
   <body>
-    <nav class="navbar nav-bar">
+
+   <nav class="navbar navbar-expand-lg navbar-light  nav-bar">
       <div class="container-fluid">
         <a class="navbar-brand brand" href="#">
           <img
@@ -24,11 +25,61 @@
           />
           Chat App
         </a>
+        <button class="navbar-toggler collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon collapse-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item nav-txt">
+              <a class="nav-link"  href="creategroup.html">Create Group</a>
+            </li>
+            
+            <li class="nav-item dropdown nav-txt">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                My Groups
+              </a>
+              <ul class="dropdown-menu drop-menu list-of-groups" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item drop-txt" href="#">Action</a></li>
+                <li><a class="dropdown-item drop-txt" href="#">Another action</a></li>
+                <li><a class="dropdown-item drop-txt" href="#">Something else here</a></li>
+              </ul>
+            </li>
+            
+          </ul>
+          
+        </div>
       </div>
     </nav>
+    
+    <div class="container chat-div mt-5" >
+      <div class="chat-heading"><h5>Heading</h5></div>
+      <div class="container chat-container">
+        <div class="container more">loading...</div>
+        <ul class="list-group chat-list m-0 p-0">
+          <li class="first-chat" style="display: none;"></li>
+         
+        </ul>
+      </div>
 
-    <div class="container chat-container">
-      <div class="container more">loading...</div>
+      <div class="container send-div">
+        <form class="send-div__chat-form" onsubmit="sendGroupChatHandler(event)">
+            <div class="row">
+              <div class="col-10">
+                <input type="text" id="msg" class="form-control send-chat" />
+              </div>
+              <div class="col">
+                <button type="submit" class="btn btn-primary send-btn">
+                  Send
+                </button>
+              </div>
+            </div>
+          </form>
+    </div>
+    </div>
+
+
+    <!-- <div class="container chat-container">
+      
       <ul class="chat-container__list">
         <li class="first-chat"></li>
         
@@ -49,7 +100,7 @@
               </div>
             </div>
           </form>
-    </div>
+    </div> -->
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script
