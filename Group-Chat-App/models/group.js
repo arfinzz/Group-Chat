@@ -12,10 +12,6 @@ const Group=sequelize.define('group',{
     name:{
         type:Sequelize.STRING,
         allowNull:false
-    },
-    adminId:{
-        type:Sequelize.INTEGER,
-        allowNull:false,
     }
     
 });

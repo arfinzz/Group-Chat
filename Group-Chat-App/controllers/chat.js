@@ -4,6 +4,7 @@ const { Op } = require("sequelize");
 const Chat = require("../models/chat");
 const Group = require("../models/group");
 const User = require("../models/user");
+const Usergroup = require("../models/usergroup");
 const sequelize = require("../utils/database");
 
 exports.createGroup = async (req, res, next) => {
@@ -13,11 +14,8 @@ exports.createGroup = async (req, res, next) => {
     const groupName = req.body.groupData.groupName;
     const memberCredentials = req.body.groupData.memberCredentials;
 
-    const group = await Group.create(
-      { name: groupName, adminId: user.id },
-      { transaction: t }
-    );
-    await group.addUser(user, { transaction: t });
+    const group = await Group.create({ name: groupName }, { transaction: t });
+    await group.addUser(user, { transaction: t, through: { isAdmin: true } });
 
     for (let memberCredential of memberCredentials) {
       let member = await User.findOne({
@@ -28,10 +26,13 @@ exports.createGroup = async (req, res, next) => {
 
       if (!member) {
         await t.rollback();
-        return res.status(404).json({ message: "Group members dont exist !" });
+        return res.status(404).json({ message: "Group members don't exist !" });
       }
 
-      await group.addUser(member, { transaction: t });
+      await group.addUser(member, {
+        transaction: t,
+        through: { isAdmin: false },
+      });
     }
 
     await t.commit();
@@ -59,8 +60,21 @@ exports.getGroupChat = async (req, res, next) => {
   try {
     const groupId = req.headers.groupid;
     const firstId = Number(req.headers.firstid);
-
     const limit = 10;
+    let isAdmin = false;
+
+    const groupData = await Usergroup.findOne({
+      where: {
+        [Op.and]: [{ groupId: groupId }, { userId: req.user.id }],
+      },
+    });
+
+    //console.log("thissssssssss", fetchedGroup.createdAt);
+
+    if (groupData.isAdmin) {
+      isAdmin = true;
+    }
+
     const fetchedChats = await Chat.findAll({
       raw: true,
       attributes: ["id", "chatData", "createdAt", "user.name"],
@@ -91,7 +105,9 @@ exports.getGroupChat = async (req, res, next) => {
 
     fetchedChats.reverse();
 
-    return res.status(200).json({ fetchedChats: fetchedChats });
+    return res
+      .status(200)
+      .json({ fetchedChats: fetchedChats, isAdmin: isAdmin });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: error });
@@ -112,7 +128,7 @@ exports.postGroupChat = async (req, res, next) => {
   }
 };
 
-exports.getNewGroupChat=async (req,res,next)=>{
+exports.getNewGroupChat = async (req, res, next) => {
   try {
     const groupId = req.headers.groupid;
     const lastId = Number(req.headers.lastid);
@@ -149,69 +165,208 @@ exports.getNewGroupChat=async (req,res,next)=>{
     console.log(error);
     return res.status(500).json({ message: error });
   }
-}
-/*
+};
 
-exports.sendChat = async (req, res, next) => {
+exports.addMember = async (req, res, next) => {
+  const t = await sequelize.transaction();
   try {
-    const chatData = req.body.chatData;
-    const dbResp = await req.user.createChat({ chatData: chatData });
-    res.status(201).json({ message: "Sent !" });
+    const user = req.user;
+
+    const groupId = req.body.groupData.groupId;
+    const memberCredentials = req.body.groupData.memberCredentials;
+
+    const fetchedGroup = await req.user.getGroups({
+      raw: true,
+      where: { id: groupId },
+    });
+
+    let isAdmin = false;
+    if (fetchedGroup[0]["Group_User.isAdmin"]) {
+      isAdmin = true;
+    } else {
+      throw "Not authorized!";
+    }
+
+    const group = await Group.findOne({ where: { id: groupId } });
+
+    for (let memberCredential of memberCredentials) {
+      let member = await User.findOne({
+        where: {
+          [Op.or]: [{ email: memberCredential }, { phoneno: memberCredential }],
+        },
+      });
+
+      if (!member) {
+        await t.rollback();
+        return res.status(404).json({ message: "Group members dont exist !" });
+      }
+
+      await group.addUser(member, { transaction: t });
+    }
+
+    await t.commit();
+    return res
+      .status(201)
+      .json({ message: "Group created !", groupName: group.name });
+  } catch (error) {
+    await t.rollback();
+    console.log(error);
+    return res.status(500).json({ message: error });
+  }
+};
+
+exports.getMember = async (req, res, next) => {
+  try {
+    const user = req.user;
+    const groupId = req.headers.groupid;
+    let isAdmin = false;
+
+    const groupData = await Usergroup.findOne({
+      where: {
+        [Op.and]: [{ groupId: groupId }, { userId: req.user.id }],
+      },
+    });
+
+    //console.log("thissssssssss", fetchedGroup.createdAt);
+
+    if (groupData) {
+      isAdmin = true;
+    }
+    else
+    {
+      throw "Not authorized!";
+    }
+
+    const fetchedMembers = await Group.findAll({
+      attributes: [
+        "users.id",
+        "users.email",
+        "users.phoneno",
+        "users.name",
+        "users.usergroup.isAdmin",
+      ],
+      raw: true,
+      where: { id: groupId },
+      include: [
+        {
+          model: User,
+          required: true,
+          attributes: [],
+          where: { id: { [Op.ne]: user.id } },
+        },
+      ],
+    });
+
+    return res.status(201).json({ fetchedMembers: fetchedMembers });
   } catch (error) {
     console.log(error);
-    return res.status(500).json(error);
+    return res.status(500).json({ message: error });
   }
 };
 
-exports.getChat = async (req, res, next) => {
+exports.deleteMember = async (req, res, next) => {
   try {
-    const firstId = req.headers.firstid;
+    const user = req.user;
+    const groupId = req.headers.groupid;
+    const userId = req.headers.userid;
+    let isAdmin = false;
 
-    //console.log(req.headers)
-    const limit = 10;
-
-    const [fetchedChats, metadata] =
-      await sequelize.query(`SELECT chats.id as id, name, chatData, chats.createdAt as time
-      FROM users
-      INNER JOIN chats
-      ON chats.userId = users.id
-      WHERE chats.id<${firstId}
-      ORDER BY chats.id DESC
-      LIMIT ${limit} OFFSET 0`);
-    //console.log(exp);
-
-    fetchedChats.forEach((chat) => {
-      chat.time = moment(chat.time).format("MMMM Do YYYY, h:mm a");
+    const groupData = await Usergroup.findOne({
+      where: {
+        [Op.and]: [{ groupId: groupId }, { userId: req.user.id }],
+      },
     });
 
-    fetchedChats.reverse();
+    //console.log("thissssssssss", fetchedGroup.createdAt);
 
-    return res.status(200).json({ chats: fetchedChats });
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json(err);
-  }
-};
+    if (groupData.isAdmin) {
+      isAdmin = true;
+    }
+    else
+    {
+      throw "Not authorized!";
+    }
 
-exports.getNewChat = async (req, res, next) => {
-  try {
-    const lastId = Number(req.headers.lastid);
-    const [fetchedChats, metadata] =
-      await sequelize.query(`SELECT chats.id as id, name, chatData, chats.createdAt as time
-      FROM users
-      INNER JOIN chats
-      ON chats.userId = users.id
-      WHERE chats.id>${lastId}
-      LIMIT 1000 OFFSET 0`);
-
-    fetchedChats.forEach((chat) => {
-      chat.time = moment(chat.time).format("MMMM Do YYYY, h:mm a");
+    const fetchedMember = await User.findOne({
+      where: { id: userId },
+    });
+    const grp = await Group.findOne({
+      where: { id: groupId },
     });
 
-    return res.status(200).json({ chats: fetchedChats });
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json(err);
+    await grp.removeUser(fetchedMember);
+
+    return res.status(201).json({ message: "Success" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error });
   }
 };
-*/
+
+exports.leaveGroup = async (req, res, next) => {
+  try {
+    const user = req.user;
+    const groupId = req.headers.groupid;
+    
+
+    const fetchedMember = await User.findOne({
+      where: { id: user.id },
+    });
+    const grp = await Group.findOne({
+      where: { id: groupId },
+    });
+
+    await grp.removeUser(fetchedMember);
+
+    return res.status(201).json({ message: "Success" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error });
+  }
+};
+
+exports.toggleAdmin = async (req, res, next) => {
+  try {
+    const user = req.user;
+    const groupId = req.headers.groupid;
+    const userId = req.headers.userid;
+    let isAdmin = false;
+
+    const groupData = await Usergroup.findOne({
+      where: {
+        [Op.and]: [{ groupId: groupId }, { userId: req.user.id }],
+      },
+    });
+
+    if (groupData.isAdmin) {
+      isAdmin = false;
+    }
+    else
+    {
+      throw "Not authorized!";
+    }
+
+    const userData=await Usergroup.findOne({
+      where: {
+        [Op.and]: [{ groupId: groupId }, { userId: userId }],
+      },
+    });
+
+    if(userData.isAdmin)
+    {
+      userData.isAdmin=false;
+      await userData.save();
+    }
+    else{
+      userData.isAdmin=true;
+      isAdmin=true;
+      await userData.save();
+    }
+
+
+    return res.status(201).json({ message: "Success" , isAdmin:isAdmin});
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error });
+  }
+};

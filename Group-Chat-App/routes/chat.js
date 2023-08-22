@@ -14,6 +14,11 @@ router.get('/getgroups',isLoggedIn,chatController.getGroups);
 router.get('/groupchat',isLoggedIn,chatController.getGroupChat);
 router.post('/groupchat',isLoggedIn,chatController.postGroupChat);
 router.get('/newgroupchat',isLoggedIn,chatController.getNewGroupChat);
+router.post('/addmember',isLoggedIn,chatController.addMember);
+router.get('/getmember',isLoggedIn,chatController.getMember);
+router.get('/deletemember',isLoggedIn,chatController.deleteMember);
+router.get('/toggleadmin',isLoggedIn,chatController.toggleAdmin);
+router.get('/leavegroup',isLoggedIn,chatController.leaveGroup);
 
 //router.post('/signup',userController.addUser)
 

@@ -11,6 +11,7 @@ const sequelize=require('./utils/database');
 const User=require('./models/user');
 const Chat=require('./models/chat');
 const Group=require('./models/group');
+const Usergroup=require('./models/usergroup');
 
 
 
@@ -25,8 +26,14 @@ app.use(chatRoutes)
 User.hasMany(Chat);
 Chat.belongsTo(User);
 
-User.belongsToMany(Group, { through: 'GroupUsers' });
-Group.belongsToMany(User, { through: 'GroupUsers' });
+User.belongsToMany(Group, { through: Usergroup });
+Group.belongsToMany(User, { through: Usergroup });
+
+User.hasMany(Usergroup);
+Usergroup.belongsTo(User);
+
+Group.hasMany(Usergroup);
+Usergroup.belongsTo(Group);
 
 Group.hasMany(Chat);
 Chat.belongsTo(Group);
