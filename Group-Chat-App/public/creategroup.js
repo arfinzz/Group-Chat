@@ -28,7 +28,7 @@ const createGroupHandler = async (event) => {
     };
   
     try {
-      const resp = await axios.post("http://localhost:3300/creategroup", {groupData:groupData},{ headers: { authorization: token }});
+      const resp = await axios.post("54.166.147.171:80/creategroup", {groupData:groupData},{ headers: { authorization: token }});
       console.log(resp);
       const feedback = document.querySelector(".feedback");
         feedback.innerHTML = resp.data.message;

@@ -1,26 +1,26 @@
-
-
-const signupHandler = async (event) => {
+const loginHandler = async (event) => {
   event.preventDefault();
-  const name = event.target.name.value;
   const email = event.target.email.value;
-  const phoneno = event.target.phoneno.value;
   const password = event.target.password.value;
 
   const userData = {
-    name: name,
     email: email,
-    phoneno: phoneno,
     password: password,
   };
 
   try {
-    const resp = await axios.post("http://localhost:3300/signup", userData);
-    console.log(resp.data.message);
+    const resp = await axios.post("54.166.147.171:80/login", userData);
+    console.log(resp.data);
+    document.cookie=`token=${resp.data.token}`;
+
+    localStorage.removeItem("chats");
     const feedback = document.querySelector(".feedback");
-      feedback.innerHTML = resp.data.message;
-      feedback.style.display = "block";
-      feedback.style.color="green";
+    feedback.innerHTML = resp.data.message;
+    feedback.style.display = "block";
+    feedback.style.color = "green";
+    //console.log(document.cookie)
+    window.location='/public/chat.html';
+
   } catch (error) {
     if (error.response) {
       // The request was made and the server responded with a status code
@@ -29,7 +29,7 @@ const signupHandler = async (event) => {
       const feedback = document.querySelector(".feedback");
       feedback.innerHTML = error.response.data.message;
       feedback.style.display = "block";
-      feedback.style.color="red";
+      feedback.style.color = "red";
     } else if (error.request) {
       // The request was made but no response was received
       // `error.request` is an instance of XMLHttpRequest in the browser and an instance of

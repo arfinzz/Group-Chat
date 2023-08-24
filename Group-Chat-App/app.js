@@ -3,6 +3,7 @@ const express=require('express');
 const Sequelize=require('sequelize');
 const bodyParser=require('body-parser');
 const cors = require('cors');
+const path=require('path');
 
 const userRoutes=require('./routes/user');
 const chatRoutes=require('./routes/chat');
@@ -17,10 +18,14 @@ const Usergroup=require('./models/usergroup');
 
 const app=express();
 process.env.TZ = "Asia/Calcutta";
-app.use(cors())
+app.use(cors());
+
 app.use(bodyParser.json());
 app.use(userRoutes);
-app.use(chatRoutes)
+app.use(chatRoutes);
+app.use((req,res)=>{
+    res.sendFile(path.join(__dirname,`${req.url}`));
+})
 
 
 User.hasMany(Chat);
