@@ -13,9 +13,8 @@ const signupHandler = async (event) => {
     phoneno: phoneno,
     password: password,
   };
-
   try {
-    const resp = await axios.post("54.166.147.171:80/signup", userData);
+    const resp = await axios.post("http://54.166.147.171:80/signup", userData);
     console.log(resp.data.message);
     const feedback = document.querySelector(".feedback");
       feedback.innerHTML = resp.data.message;
