@@ -9,7 +9,7 @@ const loginHandler = async (event) => {
   };
 
   try {
-    const resp = await axios.post("54.166.147.171:80/login", userData);
+    const resp = await axios.post("http://54.166.147.171:80/login", userData);
     console.log(resp.data);
     document.cookie=`token=${resp.data.token}`;
 

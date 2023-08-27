@@ -22,7 +22,7 @@ const getCookie = (cname) => {
 
 const displayGroups = async () => {
   try {
-    const response = await axios.get("http://localhost:3300/getgroups", {
+    const response = await axios.get("http://54.166.147.171:80/getgroups", {
       headers: { authorization: token },
     });
     const groups = response.data.groups;
@@ -43,7 +43,7 @@ const displayGroups = async () => {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
       if (error.response.status == 401) {
-        window.location = "/Group-Chat-App-Frontend/index.html";
+        window.location = "/public/index.html";
       } else {
         console.log(error.response.data.message);
       }
@@ -51,17 +51,15 @@ const displayGroups = async () => {
       // The request was made but no response was received
       // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
       // http.ClientRequest in node.js
-      window.location = "/Group-Chat-App-Frontend/index.html";
+      window.location = "/public/index.html";
       console.log(error.request);
     } else {
       // Something happened in setting up the request that triggered an Error
-      window.location = "/Group-Chat-App-Frontend/index.html";
+      window.location = "/public/index.html";
       console.log("Error", error.message);
     }
   }
 };
-
-//finction to handle click on a group
 
 const displayGroupChatHandler = async (event) => {
   firstId = 99999;
@@ -241,7 +239,7 @@ const addMember = async (event) => {
 
   try {
     const resp = await axios.post(
-      "http://localhost:3300/addmember",
+      "http://54.166.147.171:80/addmember",
       { groupData: groupData },
       { headers: { authorization: token } }
     );
@@ -279,7 +277,7 @@ const removeMember = async (event) => {
       .innerHTML;
   const userToDelete = event.target.parentElement.parentElement.parentElement;
   try {
-    const resp = await axios.get("http://localhost:3300/deletemember", {
+    const resp = await axios.get("http://54.166.147.171:80/deletemember", {
       headers: { authorization: token, groupId: groupId, userId: userId },
     });
 
@@ -296,7 +294,7 @@ const toggleAdmin = async (event) => {
   const elementToToggle = event.target.parentElement;
 
   try {
-    const response = await axios.get("http://localhost:3300/toggleadmin", {
+    const response = await axios.get("http://54.166.147.171:80/toggleadmin", {
       headers: { authorization: token, groupId: groupId, userId: userId },
     });
 
@@ -327,7 +325,7 @@ const editMemberHandler = async (event) => {
 </div>`;
 
   try {
-    const resp = await axios.get("http://localhost:3300/getmember", {
+    const resp = await axios.get("http://54.166.147.171:80/getmember", {
       headers: { authorization: token, groupId: groupId },
     });
     //console.log(resp)
@@ -383,7 +381,7 @@ const viewMemberHandler = async (event) => {
 </div>`;
 
   try {
-    const resp = await axios.get("http://localhost:3300/getmember", {
+    const resp = await axios.get("http://54.166.147.171:80/getmember", {
       headers: { authorization: token, groupId: groupId },
     });
     //console.log(resp)
@@ -422,7 +420,7 @@ const viewMemberHandler = async (event) => {
 const leaveGroup=async (event)=>{
   clearInterval(msgListener);
   try {
-    const resp = await axios.get("http://localhost:3300/leavegroup", {
+    const resp = await axios.get("http://54.166.147.171:80/leavegroup", {
       headers: { authorization: token, groupId: groupId},
     });
 
@@ -435,7 +433,7 @@ const leaveGroup=async (event)=>{
 
 const displayOldGroupChats = async () => {
   try {
-    const response = await axios.get("http://localhost:3300/groupchat", {
+    const response = await axios.get("http://54.166.147.171:80/groupchat", {
       headers: { authorization: token, firstid: firstId, groupid: groupId },
     });
 
@@ -478,7 +476,7 @@ const displayOldGroupChats = async () => {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
       if (error.response.status == 401) {
-        window.location = "/Group-Chat-App-Frontend/index.html";
+        window.location = "/public/index.html";
       } else {
         console.log(error.response.data.message);
       }
@@ -496,7 +494,7 @@ const displayOldGroupChats = async () => {
 
 const displayNewGroupChats = async () => {
   try {
-    const response = await axios.get("http://localhost:3300/newgroupchat", {
+    const response = await axios.get("http://54.166.147.171:80/newgroupchat", {
       headers: { authorization: token, lastid: lastId, groupid: groupId },
     });
 
@@ -519,7 +517,7 @@ const displayNewGroupChats = async () => {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
       if (error.response.status == 401) {
-        window.location = "/Group-Chat-App-Frontend/index.html";
+        window.location = "/public/index.html";
       } else {
         console.log(error.response.data.message);
       }
@@ -546,7 +544,7 @@ const sendGroupChatHandler = async (event) => {
   try {
     const chatData = event.target.msg.value;
     const response = await axios.post(
-      "http://localhost:3300/groupchat",
+      "http://54.166.147.171:80/groupchat",
       { chatData: chatData, groupId: groupId },
       { headers: { authorization: token } }
     );
@@ -557,7 +555,7 @@ const sendGroupChatHandler = async (event) => {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
       if (error.response.status == 401) {
-        window.location = "/Group-Chat-App-Frontend/index.html";
+        window.location = "/public/index.html";
       } else {
         console.log(error.response.data.message);
       }

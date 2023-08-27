@@ -46,8 +46,8 @@ Chat.belongsTo(Group);
 //{force:true}
 sequelize.sync()
 .then(()=>{
-    console.log('Listening at port 3300');
-    app.listen(process.env.PORT || 3300);
+    console.log('Listening at port 80');
+    app.listen(80);
 })
 .catch(err=>{
     console.log(err);
